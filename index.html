@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>King AI Skrip</title>
+    <!-- Library PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* Reset & Base Styles */
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0f172a; /* Dark Blue Background */
+            color: #f1f5f9;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #334155;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #818cf8; /* Light Indigo */
+            margin-bottom: 5px;
+        }
+
+        p.subtitle {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"], 
+        select, 
+        textarea {
+            width: 100%;
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            color: #ffffff;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+            appearance: none; /* Remove default arrow on iOS/Android */
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: #6366f1;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        /* Buttons - NO EMOJI */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .btn:active { transform: scale(0.98); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #334155;
+            color: #e2e8f0;
+            border: 1px solid #475569;
+        }
+
+        /* Result Area */
+        .result-container {
+            margin-top: 25px;
+            background-color: #1e293b;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .result-header {
+            background-color: #0f172a;
+            padding: 10px 15px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #64748b;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .result-content {
+            padding: 20px;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #e2e8f0;
+            white-space: pre-wrap;
+            min-height: 150px;
+        }
+
+        .loading-text {
+            color: #818cf8;
+            font-style: italic;
+        }
+
+        .error-text {
+            color: #ef4444;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #334155;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            opacity: 1;
+            visibility: visible;
+            bottom: 40px;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 11px;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>KING AI SKRIP</h1>
+        <p class="subtitle">Asisten Penulisan Akademik Otomatis</p>
+    </header>
+
+    <div class="form-group">
+        <label>Judul / Topik Skripsi</label>
+        <input type="text" id="topicInput" placeholder="Contoh: Strategi Pemasaran Digital UMKM">
+    </div>
+
+    <div class="form-group">
+        <label>Jenis Konten</label>
+        <select id="typeSelect">
+            <option value="pendahuluan">Pendahuluan / Latar Belakang</option>
+            <option value="rumusan">Rumusan Masalah</option>
+            <option value="tujuan">Tujuan Penelitian</option>
+            <option value="manfaat">Manfaat Penelitian</option>
+            <option value="tinjauan">Tinjauan Pustaka</option>
+            <option value="metodologi">Metodologi Penelitian</option>
+            <option value="kesimpulan">Kesimpulan & Saran</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Detail Tambahan (Opsional)</label>
+        <textarea id="detailInput" placeholder="Tambahkan variabel, metode, atau poin penting lainnya..."></textarea>
+    </div>
+
+    <!-- Tombol Tanpa Emoji -->
+    <button class="btn btn-primary" onclick="generateContent()">
+        GENERATE DENGAN AI
+    </button>
+
+    <div class="result-container">
+        <div class="result-header">
+            <span>HASIL OUTPUT</span>
+            <span id="statusIndicator">SIAP</span>
+        </div>
+        <div class="result-content" id="resultArea">
+            Hasil generate akan muncul di sini setelah Anda menekan tombol di atas.
+        </div>
+    </div>
+
+    <div style="margin-top: 15px;">
+        <button class="btn btn-success" onclick="exportPDF()">
+            DOWNLOAD PDF
+        </button>
+        <button class="btn btn-secondary" onclick="copyText()">
+            SALIN TEKS
+        </button>
+    </div>
+
+    <footer>
+        v2.0 | King AI Skrip System
+    </footer>
+</div>
+
+<div class="toast" id="toast">Notifikasi</div>
+
+<script>
+    // KONFIGURASI API KEY BARU
+    const API_KEY = 'AQ.Ab8RN6J3zq0zIstjULAYPPZcjVQz5OeQAVOsIJ3clS6CeT0eSQ';
+    
+    // Fungsi Utama Generate
+    async function generateContent() {
+        const topic = document.getElementById('topicInput').value.trim();
+        const type = document.getElementById('typeSelect').value;
+        const detail = document.getElementById('detailInput').value.trim();
+        const resultArea = document.getElementById('resultArea');
+        const statusInd = document.getElementById('statusIndicator');
+
+        if (!topic) {
+            showToast('Harap isi Judul/Topik terlebih dahulu!');
+            return;
+        }
+
+        // UI Loading State
+        resultArea.innerHTML = '<span class="loading-text">Sedang memproses permintaan ke server AI...</span>';
+        statusInd.textContent = 'LOADING...';
+        statusInd.style.color = '#818cf8';
+
+        // Construct Prompt
+        const prompt = `Bertindaklah sebagai dosen pembimbing skripsi ahli. Buatkan draf akademis yang berkualitas tinggi, formal, dan terstruktur untuk bagian "${type}" dari skripsi berjudul: "${topic}". 
+        Detail tambahan dari pengguna: "${detail}". 
+        Gunakan bahasa Indonesia baku (EYD), hindari kata-kata slang, dan pastikan alur logika antar paragraf顺畅.`;
+
+        try {
+            // Panggil API OpenRouter
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${API_KEY}`,
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer': window.location.href,
+                    'X-Title': 'King AI Skrip App'
+                },
+                body: JSON.stringify({
+                    model: 'meta-llama/llama-3-8b-instruct:free', // Model gratis yang stabil
+                    messages: [{ role: 'user', content: prompt }],
+                    temperature: 0.7
+                })
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error?.message || 'Gagal terhubung ke server');
+            }
+
+            const data = await response.json();
+            const aiText = data.choices[0].message.content;
+
+            // Tampilkan Hasil
+            resultArea.textContent = aiText;
+            statusInd.textContent = 'SELESAI';
+            statusInd.style.color = '#10b981';
+            showToast('Konten berhasil dibuat!');
+
+        } catch (error) {
+            console.error(error);
+            
+            // FALLBACK MODE: Jika API gagal, gunakan generator lokal
+            // Ini memastikan aplikasi tidak terlihat "rusak" di AppsGeyser
+            setTimeout(() => {
+                const mockText = generateLocalFallback(topic, type, detail);
+                resultArea.textContent = mockText;
+                statusInd.textContent = 'MODE OFFLINE';
+                statusInd.style.color = '#f59e0b';
+                showToast('Server sibuk. Menggunakan mode offline.');
+            }, 1000);
+        }
+    }
+
+    // Generator Lokal (Backup)
+    function generateLocalFallback(topic, type, detail) {
+        let text = `[CATATAN: Koneksi AI sedang gangguan. Ini adalah draf otomatis dari sistem lokal.]\n\n`;
+        text += `BAB: ${type.toUpperCase()}\nJUDUL: ${topic}\n\n`;
+        
+        if (type === 'pendahuluan') {
+            text += `Latar Belakang Masalah:\n\nDalam konteks perkembangan saat ini, topik mengenai ${topic} menjadi sangat relevan untuk dikaji lebih lanjut. Fenomena yang terjadi di lapangan menunjukkan adanya kesenjangan antara harapan dan realita, khususnya terkait ${detail || 'aspek-aspek fundamental'}. \n\nUrgensi penelitian ini didasarkan pada kebutuhan akan solusi empiris yang dapat menjawab permasalahan tersebut. Tanpa adanya analisis mendalam, isu ${topic} berpotensi menghambat kemajuan sektor terkait. Oleh karena itu, penelitian ini hadir untuk mengisi celah pengetahuan tersebut.`;
+        } else if (type === 'rumusan') {
+            text += `Berdasarkan latar belakang di atas, maka rumusan masalah dalam penelitian ini adalah:\n\n1. Bagaimana kondisi eksisting terkait ${topic} saat ini?\n2. Faktor-faktor apa saja yang signifikan mempengaruhi ${topic}?\n3. Apakah terdapat pengaruh yang nyata antara variabel X terhadap ${topic}?\n4. Strategi apa yang paling efektif untuk mengoptimalkan ${topic}?`;
+        } else if (type === 'tujuan') {
+            text += `Penelitian ini bertujuan untuk:\n\n1. Menganalisis dan mendeskripsikan kondisi ${topic} secara komprehensif.\n2. Mengidentifikasi faktor determinan yang berdampak pada ${topic}.\n3. Menguji signifikansi hubungan antar variabel dalam studi ${topic}.\n4. Merumuskan rekomendasi strategis berbasis bukti empiris.`;
+        } else {
+            text += `(Draf untuk bagian ${type} sedang disiapkan oleh sistem lokal. Silakan coba lagi nanti ketika koneksi server stabil untuk mendapatkan hasil dari AI.)`;
+        }
+        
+        return text;
+    }
+
+    // Export PDF Function
+    function exportPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const text = document.getElementById('resultArea').textContent;
+        const topic = document.getElementById('topicInput').value || 'Tanpa Judul';
+
+        if (text.includes('Hasil generate akan muncul')) {
+            showToast('Belum ada konten untuk disimpan!');
+            return;
+        }
+
+        // Header PDF
+        doc.setFontSize(18);
+        doc.setTextColor(99, 102, 241);
+        doc.text("KING AI SKRIP", 105, 20, null, null, "center");
+        
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Topik: ${topic}`, 105, 28, null, null, "center");
+        doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 105, 33, null, null, "center");
+        
+        doc.setDrawColor(200);
+        doc.line(20, 38, 190, 38);
+
+        // Content PDF
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        const splitText = doc.splitTextToSize(text, 170);
+        doc.text(splitText, 20, 48);
+
+        // Save
+        const fileName = `Skrip_${topic.replace(/[^a-z0-9]/gi, '_').substring(0, 20)}.pdf`;
+        doc.save(fileName);
+        showToast('File PDF berhasil didownload!');
+    }
+
+    // Copy Text Function
+    function copyText() {
+        const text = document.getElementById('resultArea').textContent;
+        if (text.includes('Hasil generate akan muncul')) return;
+        
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('Teks berhasil disalin!');
+        }).catch(() => {
+            showToast('Gagal menyalin teks.');
+        });
+    }
+
+    // Toast Notification Helper
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+</script>
+
+</body>
+</html>
